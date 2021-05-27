@@ -138,6 +138,7 @@ def line_jp(x1, x2):
     s = skew(x1)
     return s.dot(x2)
 
+
 def line_si(l):
     """Get slope and intercept of the line
 
@@ -154,9 +155,10 @@ def line_si(l):
         intercept parameter
     """
 
-    slope = -l[0]/l[1]
-    intercept = -l[2]/l[1]
-    return slope,intercept
+    slope = -l[0] / l[1]
+    intercept = -l[2] / l[1]
+    return slope, intercept
+
 
 def normalize_line(l):
     """Normalize line
@@ -172,8 +174,7 @@ def normalize_line(l):
     ln: ndarray
         normalized line in homogenous coordinates
     """
-    return l/np.linalg.norm(l[:2])
-
+    return l / np.linalg.norm(l[:2])
 
 
 def point_line_dist(ln, x):
@@ -211,4 +212,3 @@ def transform_line(l, H):
         transformed line
     """
     return np.linalg.inv(H.T).dot(l)
-
