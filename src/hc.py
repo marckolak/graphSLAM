@@ -98,3 +98,117 @@ def rigid_body_transformation(angle, t):
     h[:2, 2] = t
 
     return h
+
+
+def skew(x):
+    """Compute skew matrix for vector x
+
+    Parameters
+    ----------
+    x: ndarray
+        point in homogenous coordinates
+
+    Returns
+    -------
+    s: ndarray
+        skew matrix
+    """
+
+    return np.array([[0, -x[2], x[1]],
+                     [x[2], 0, -x[0]],
+                     [-x[1], x[0], 0]])
+
+
+def line_jp(x1, x2):
+    """Get a line joining two points
+
+    Parameters
+    ----------
+    x1: ndarray
+        point in homogenous coordinates
+    x2: ndarray
+        point in homogenous coordinates
+
+    Returns
+    -------
+    l: ndarray
+        line in homogenous coordinates
+    """
+
+    s = skew(x1)
+    return s.dot(x2)
+
+def line_si(l):
+    """Get slope and intercept of the line
+
+    Parameters
+    ----------
+    l: ndarray
+        line in homogenous coordinates
+
+    Returns
+    -------
+    slope: float
+        slope parameter
+    intercept: float
+        intercept parameter
+    """
+
+    slope = -l[0]/l[1]
+    intercept = -l[2]/l[1]
+    return slope,intercept
+
+def normalize_line(l):
+    """Normalize line
+    Normalization is needed when computing distance from a line
+
+    Parameters
+    ----------
+    l: ndarray
+        line in homogenous coordinates
+
+    Returns
+    -------
+    ln: ndarray
+        normalized line in homogenous coordinates
+    """
+    return l/np.linalg.norm(l[:2])
+
+
+
+def point_line_dist(ln, x):
+    """Calculate distance of points from a line
+
+    Parameters
+    ----------
+    ln: ndarray
+        normalized line in homogenous coordinates
+    x: ndarray
+        points in hc
+
+    Returns
+    -------
+    d: ndarray
+        distances between the points and the line
+    """
+
+    return ln.dot(x)
+
+
+def transform_line(l, H):
+    """Apply transformation to a line
+
+    Parameters
+    ----------
+    l: ndarray
+        line
+    H: ndarray
+        transformation matrix
+
+    Returns
+    -------
+    lt: ndarray
+        transformed line
+    """
+    return np.linalg.inv(H.T).dot(l)
+
