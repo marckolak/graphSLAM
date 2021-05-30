@@ -138,10 +138,11 @@ class GridMap:
             r = np.tensordot(xy, v, axes=((0), (0)))
 
             intersects_cell = np.abs(c) < cs / 2
-            print(intersects_cell)
-            plt.imshow(np.abs(r)*(self.map>0.6), cmap='hot')
-            # plt.imshow(self.map[intersects_cell])
-            plt.show()
+            # print(intersects_cell)
+            # plt.figure()
+            # plt.imshow(np.abs(r)*(self.map>0.6), cmap='hot')
+            # # plt.imshow(self.map[intersects_cell])
+            # plt.show()
             ix = np.unravel_index(np.argmin(r*(intersects_cell & (self.map>0.6))), r.shape)
             scan_sample.append([xx[ix], yy[ix]])
 
