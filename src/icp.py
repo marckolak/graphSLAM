@@ -22,7 +22,8 @@ def match_scans(s1, s2, ic, sp, iters=5):
                                          sp["mrg_a_tol"], sp["mrg_b_tol"], sp["mrg_fit_tol"], corners=[])
 
         # get corresponding line segments and points, which are close to each other
-        corr_points = corresponding_line_points(lp1, lp2, H)
+        corr_points = corresponding_line_points(lp1, lp2, H,
+                                                an_th=sp['an_th'], d_th=sp['d_th'], corr_points_th=sp['corr_points_th'])
 
         optres = least_squares(icp_err_fun, x, args=(corr_points,))
 
@@ -55,7 +56,8 @@ def corresponding_line_points(lp1, lp2, H, an_th=0.1, d_th=0.05, corr_points_th=
     # look for distances
     for b, p in zip(br1, points1):
         # distance between from points
-        ldif = np.abs(br2 - b)
+        ldif = np.c_[angle_diff(br2[:,0], b[0]), np.abs(br2[:,1] - b[1])]
+
         # corresponding lines mask
         corr = ((ldif[:, 0] < an_th) & (ldif[:, 1] < d_th))
 
@@ -95,3 +97,7 @@ def icp_err_fun(x, corr_points):
     cper = np.hstack(cper)
 
     return cper
+
+
+def angle_diff(a1, a2):
+    return np.pi - abs(abs(a1 - a2) - np.pi)
