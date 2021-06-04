@@ -35,7 +35,7 @@ class GridMap:
         self.width = new_size[0]
         self.height = new_size[1]
 
-    def from_scan(self, s, pose=np.r_[0, 0, 0]):
+    def from_scan(self, s, pose=np.r_[0, 0, 0], x_range=[], y_range=[]):
         """Create occupancy grid map from a scan
 
         Parameters
@@ -47,15 +47,22 @@ class GridMap:
 
         """
         self.scan = s[:, :2]
-        x, y = s[:, 0] + pose[0], s[:, 1] + pose[1]
+        # x, y = s[:, 0] + pose[0], s[:, 1] + pose[1]
+        x, y = s[:, 0],  s[:, 1]
         self.pose = pose
         cs = self.resolution
-        self.xc = np.arange((np.floor(x.min() / cs) - 3) * cs, (np.ceil(x.max() / cs) + 3) * cs, cs)
-        self.yc = np.arange((np.floor(y.min() / cs) - 3) * cs, (np.ceil(y.max() / cs) + 3) * cs, cs)
+        if len(x_range) and len(y_range):
+            self.xc = np.arange((np.floor(x_range[0]/ cs) - 3) * cs, (np.ceil(x_range[1] / cs) + 3) * cs, cs)
+            self.yc = np.arange((np.floor(y_range[0] / cs) - 3) * cs, (np.ceil(y_range[1] / cs) + 3) * cs, cs)
+        else:
+            self.xc = np.arange((np.floor(x.min() / cs) - 3) * cs, (np.ceil(x.max() / cs) + 3) * cs, cs)
+            self.yc = np.arange((np.floor(y.min() / cs) - 3) * cs, (np.ceil(y.max() / cs) + 3) * cs, cs)
+            print(x.min(), x.max(), y.min(), y.max())
 
         xx, yy = np.meshgrid(self.xc, self.yc)
         xy = np.array([xx - self.pose[0], yy - self.pose[1]])
         self.map = np.zeros(xx.shape) + log_odds(0.5)
+        print(self.map.shape)
         R = np.array([[0, -1], [1, 0]])
 
         for p in s[:, :2]-pose[:2]:
@@ -86,9 +93,9 @@ class GridMap:
         """
         xcm = np.r_[self.xc, map2.xc]
         ycm = np.r_[self.yc, map2.yc]
-
-        self.expand_map(xcm.min(), xcm.max(), ycm.min(), ycm.max())
-        map2.expand_map(xcm.min(), xcm.max(), ycm.min(), ycm.max())
+        print(xcm.min(), xcm.max(), ycm.min(), ycm.max())
+        # self.expand_map(xcm.min(), xcm.max(), ycm.min(), ycm.max())
+        # map2.expand_map(xcm.min(), xcm.max(), ycm.min(), ycm.max())
 
         self.map = prob(log_odds(self.map) + log_odds(map2.map) - self.l_nd)
 
