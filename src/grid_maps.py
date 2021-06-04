@@ -8,6 +8,7 @@ import numpy as np
 
 from src.geometry import sort_clockwise
 from matplotlib import pyplot as plt
+import src.hc as hc
 
 class GridMap:
 
@@ -57,7 +58,7 @@ class GridMap:
         self.map = np.zeros(xx.shape) + log_odds(0.5)
         R = np.array([[0, -1], [1, 0]])
 
-        for p in s[:, :2]:
+        for p in s[:, :2]-pose[:2]:
             v = p / np.linalg.norm(p)
             vp = R.dot(v)
             c = np.abs(np.tensordot(xy, vp, axes=((0), (0))))

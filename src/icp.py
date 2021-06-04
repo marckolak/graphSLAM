@@ -7,9 +7,11 @@ import src.hc as hc
 
 def match_scans(s1, s2, ic, sp, iters=5):
     x = ic
+
     for i in range(iters):
         # transform second scan using the result from the last iteration
-        H = transformation_matrix(x[2], x[:2])
+        # H = transformation_matrix(x[2], x[:2])
+        H = hc.translation(x[:2]).dot(hc.rotation(x[2]))
         s2t = hc.hc_ec(H.dot(hc.ec_hc(s2[:, :2])))
 
         # Extract line features from the scans
@@ -24,6 +26,7 @@ def match_scans(s1, s2, ic, sp, iters=5):
         # get corresponding line segments and points, which are close to each other
         corr_points = corresponding_line_points(lp1, lp2, H,
                                                 an_th=sp['an_th'], d_th=sp['d_th'], corr_points_th=sp['corr_points_th'])
+
 
         optres = least_squares(icp_err_fun, x, args=(corr_points,))
 
@@ -87,8 +90,8 @@ def cp_dist(a, p):
 
 
 def icp_err_fun(x, corr_points):
-    H = transformation_matrix(x[2], x[:2])
-
+    # H = transformation_matrix(x[2], x[:2])
+    H = hc.translation(x[:2]).dot(hc.rotation(x[2]))
     cper = []
     for p1, p2 in corr_points:
         cper.append(np.mean(np.apply_along_axis(cp_dist, 1, hc.hc_ec(H.dot(hc.ec_hc(p2))), p1)))
