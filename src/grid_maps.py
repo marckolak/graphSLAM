@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 import src.hc as hc
 import time
 
+
 class GridMap:
 
     def __init__(self, size=(0, 0), resolution=0.05):
@@ -49,11 +50,11 @@ class GridMap:
         """
         self.scan = s[:, :2]
         # x, y = s[:, 0] + pose[0], s[:, 1] + pose[1]
-        x, y = s[:, 0],  s[:, 1]
+        x, y = s[:, 0], s[:, 1]
         self.pose = pose
         cs = self.resolution
         if len(x_range) and len(y_range):
-            self.xc = np.arange((np.floor(x_range[0]/ cs) - 3) * cs, (np.ceil(x_range[1] / cs) + 3) * cs, cs)
+            self.xc = np.arange((np.floor(x_range[0] / cs) - 3) * cs, (np.ceil(x_range[1] / cs) + 3) * cs, cs)
             self.yc = np.arange((np.floor(y_range[0] / cs) - 3) * cs, (np.ceil(y_range[1] / cs) + 3) * cs, cs)
         else:
             self.xc = np.arange((np.floor(x.min() / cs) - 3) * cs, (np.ceil(x.max() / cs) + 3) * cs, cs)
@@ -71,24 +72,24 @@ class GridMap:
         # vps = R.dot(vs)
 
         c1 = 0
-        c2 =0
-        for p in s[:, :2]-pose[:2]:
-            start= time.time()
+        c2 = 0
+        for p in s[:, :2] - pose[:2]:
+            start = time.time()
             v = p / np.linalg.norm(p)
             vp = R.dot(v)
-            c1+=time.time()-start
+            c1 += time.time() - start
 
             start = time.time()
             c = np.abs(np.tensordot(xy, vp, axes=((0), (0))))
             r = np.tensordot(xy, v, axes=((0), (0)))
-            c2+=time.time()-start
+            c2 += time.time() - start
 
             free = (c < cs / 2) & (r > 0) & (r <= np.linalg.norm(p))
             occ = (c < cs / 2) & (np.abs(r - np.linalg.norm(p)) < cs / 2)
             self.map[free] += self.l_free - self.l_nd
             self.map[occ] += self.l_occ - self.l_nd
 
-        print(c1,c2)
+        print(c1, c2)
         self.map = prob(self.map)
         self.map[self.map < 0.5] = 0.001
         self.map[self.map > 0.5] = 1
@@ -153,7 +154,7 @@ class GridMap:
         scan_sample = []
         R = np.array([[0, -1], [1, 0]])
         for a in np.arange(-np.pi, np.pi, resolution):
-            v= np.r_[np.cos(a), np.sin(a)]
+            v = np.r_[np.cos(a), np.sin(a)]
             vp = R.dot(v)
             c = np.abs(np.tensordot(xy, vp, axes=((0), (0))))
             r = np.tensordot(xy, v, axes=((0), (0)))
@@ -164,7 +165,7 @@ class GridMap:
             # plt.imshow(np.abs(r)*(self.map>0.6), cmap='hot')
             # # plt.imshow(self.map[intersects_cell])
             # plt.show()
-            ix = np.unravel_index(np.argmin(r*(intersects_cell & (self.map>0.6))), r.shape)
+            ix = np.unravel_index(np.argmin(r * (intersects_cell & (self.map > 0.6))), r.shape)
             scan_sample.append([xx[ix], yy[ix]])
 
         return np.array(scan_sample)
@@ -319,3 +320,69 @@ def occupancy_grid_map(scan, cell_size):
     occ_grid[occ_grid >= 1] = 1
 
     return occ_grid[::-1]
+
+
+def points2gridmap(size, res, pose, scan, p_free=0.4, p_nd=0.5, p_occ=0.99):
+
+    l_free = log_odds(p_free)
+    l_nd = log_odds(p_nd)
+    l_occ = log_odds(p_occ)
+
+    gridmap = np.zeros([int(np.ceil(size / res)), int(np.ceil(size / res))]) + l_nd
+
+    pix = world2map(pose, gridmap, res)
+    ix = world2map(scan, gridmap, res)
+
+    for pt in ix:
+        bix = np.array(list(bresenham(pix[0], pix[1], pt[0], pt[1])))
+        gridmap[bix[:-1, 0], bix[:-1, 1]] += l_free-l_nd
+        gridmap[bix[-1][0], bix[-1][1]] += l_occ - l_nd
+
+    return prob(gridmap)
+
+def world2map(pose, gridmap, map_res):
+    origin = np.array(gridmap.shape) / 2
+    new_pose = np.round(pose[:2] / map_res).T + origin
+
+    return new_pose.astype(int)
+
+
+def bresenham(x0, y0, x1, y1):
+    """
+
+    Parameters
+    ----------
+    x0
+    y0
+    x1
+    y1
+
+    Returns
+    -------
+
+    """
+    dx = x1 - x0
+    dy = y1 - y0
+
+    xsign = 1 if dx > 0 else -1
+    ysign = 1 if dy > 0 else -1
+
+    dx = abs(dx)
+    dy = abs(dy)
+
+    if dx > dy:
+        xx, xy, yx, yy = xsign, 0, 0, ysign
+    else:
+        dx, dy = dy, dx
+        xx, xy, yx, yy = 0, ysign, xsign, 0
+
+    D = 2 * dy - dx
+    y = 0
+
+    for x in range(dx + 1):
+        yield x0 + x * xx + y * yx, y0 + x * xy + y * yy
+        if D >= 0:
+            y += 1
+            D -= 2 * dx
+        D += 2 * dy
+
