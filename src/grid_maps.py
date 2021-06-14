@@ -9,6 +9,7 @@ import numpy as np
 from src.geometry import sort_clockwise
 from matplotlib import pyplot as plt
 import src.hc as hc
+import time
 
 class GridMap:
 
@@ -62,23 +63,35 @@ class GridMap:
         xx, yy = np.meshgrid(self.xc, self.yc)
         xy = np.array([xx - self.pose[0], yy - self.pose[1]])
         self.map = np.zeros(xx.shape) + log_odds(0.5)
-        print(self.map.shape)
+        print(xy.shape)
         R = np.array([[0, -1], [1, 0]])
 
+        # sp = s[:, :2]-pose[:2]
+        # vs =sp/np.linalg.norm(sp, axis=1).reshape(-1,1)
+        # vps = R.dot(vs)
+
+        c1 = 0
+        c2 =0
         for p in s[:, :2]-pose[:2]:
+            start= time.time()
             v = p / np.linalg.norm(p)
             vp = R.dot(v)
+            c1+=time.time()-start
+
+            start = time.time()
             c = np.abs(np.tensordot(xy, vp, axes=((0), (0))))
             r = np.tensordot(xy, v, axes=((0), (0)))
+            c2+=time.time()-start
 
             free = (c < cs / 2) & (r > 0) & (r <= np.linalg.norm(p))
             occ = (c < cs / 2) & (np.abs(r - np.linalg.norm(p)) < cs / 2)
             self.map[free] += self.l_free - self.l_nd
             self.map[occ] += self.l_occ - self.l_nd
 
+        print(c1,c2)
         self.map = prob(self.map)
-        self.map[self.map < 0.4] = 0.001
-        self.map[self.map > 0.6] = 1
+        self.map[self.map < 0.5] = 0.001
+        self.map[self.map > 0.5] = 1
 
     def merge(self, map2):
         """Merge a grid map with another one
