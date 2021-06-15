@@ -335,7 +335,7 @@ def points2gridmap(size, res, pose, scan, p_free=0.4, p_nd=0.5, p_occ=0.99):
 
     for pt in ix:
         bix = np.array(list(bresenham(pix[0], pix[1], pt[0], pt[1])))
-        gridmap[bix[:-1, 0], bix[:-1, 1]] += l_free-l_nd
+        gridmap[bix[:-1, 0], bix[:-1, 1]] += l_free - l_nd
         gridmap[bix[-1][0], bix[-1][1]] += l_occ - l_nd
 
     return prob(gridmap)
@@ -346,6 +346,10 @@ def world2map(pose, gridmap, map_res):
 
     return new_pose.astype(int)
 
+def merge_maps(g1, g2, p_nd=0.5):
+    gridmap = prob(log_odds(g1) + log_odds(g2) - log_odds(p_nd))
+
+    return gridmap
 
 def bresenham(x0, y0, x1, y1):
     """
