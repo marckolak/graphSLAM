@@ -104,3 +104,5 @@ def icp_err_fun(x, corr_points):
 
 def angle_diff(a1, a2):
     return np.pi - abs(abs(a1 - a2) - np.pi)
+
+

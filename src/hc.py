@@ -212,3 +212,18 @@ def transform_line(l, H):
         transformed line
     """
     return np.linalg.inv(H.T).dot(l)
+
+
+def t2v(T):
+    x = T[0, 2]
+    y = T[1, 2]
+    theta = np.arctan2(T[1, 0], T[0, 0])
+    v = np.array([x, y, theta])
+    return v
+
+
+def v2t(pose):
+    c = np.cos(pose[2])
+    s = np.sin(pose[2])
+    T = np.array([[c, -s, pose[0]], [s, c, pose[1]], [0, 0, 1]])
+    return T

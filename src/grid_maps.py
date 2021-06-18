@@ -334,9 +334,13 @@ def points2gridmap(size, res, pose, scan, p_free=0.4, p_nd=0.5, p_occ=0.99):
     ix = world2map(scan, gridmap, res)
 
     for pt in ix:
-        bix = np.array(list(bresenham(pix[0], pix[1], pt[0], pt[1])))
-        gridmap[bix[:-1, 0], bix[:-1, 1]] += l_free - l_nd
-        gridmap[bix[-1][0], bix[-1][1]] += l_occ - l_nd
+        try:
+            bix = np.array(list(bresenham(pix[0], pix[1], pt[0], pt[1])))
+            gridmap[bix[:-1, 0], bix[:-1, 1]] += l_free - l_nd
+            gridmap[bix[-1][0], bix[-1][1]] += l_occ - l_nd
+        except:
+            # print('erronous measurement'
+            pass
 
     return prob(gridmap)
 
@@ -390,3 +394,16 @@ def bresenham(x0, y0, x1, y1):
             D -= 2 * dx
         D += 2 * dy
 
+
+def init_gridmap(size, res, p_nd=0.5):
+    l_nd = log_odds(p_nd)
+
+    gridmap = np.zeros([int(np.ceil(size / res)), int(np.ceil(size / res))]) + l_nd
+    print(np.unique(gridmap))
+    return prob(gridmap)
+
+def map_corr(m1, m2):
+
+    same_points = (np.abs(m1-m2)<0.2) & (m1!=0.5) & (m2!=0.5)
+    print(same_points.sum(),(m1!=0.5).sum(), (m2!=0.5).sum())
+    return np.r_[same_points.sum()/(m1!=0.5).sum(), same_points.sum()/(m2!=0.5).sum()]
