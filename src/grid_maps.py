@@ -4,12 +4,11 @@ The grid_maps module contains functions which can be used for occupancy grid map
 Copyright (C) 2021 Marcin Kolakowski
 """
 
+import time
+
 import numpy as np
 
 from src.geometry import sort_clockwise
-from matplotlib import pyplot as plt
-import src.hc as hc
-import time
 
 
 class GridMap:
@@ -323,7 +322,6 @@ def occupancy_grid_map(scan, cell_size):
 
 
 def points2gridmap(size, res, pose, scan, p_free=0.4, p_nd=0.5, p_occ=0.99):
-
     l_free = log_odds(p_free)
     l_nd = log_odds(p_nd)
     l_occ = log_odds(p_occ)
@@ -344,16 +342,19 @@ def points2gridmap(size, res, pose, scan, p_free=0.4, p_nd=0.5, p_occ=0.99):
 
     return prob(gridmap)
 
+
 def world2map(pose, gridmap, map_res):
     origin = np.array(gridmap.shape) / 2
     new_pose = np.round(pose[:2] / map_res).T + origin
 
     return new_pose.astype(int)
 
+
 def merge_maps(g1, g2, p_nd=0.5):
     gridmap = prob(log_odds(g1) + log_odds(g2) - log_odds(p_nd))
 
     return gridmap
+
 
 def bresenham(x0, y0, x1, y1):
     """
@@ -399,11 +400,9 @@ def init_gridmap(size, res, p_nd=0.5):
     l_nd = log_odds(p_nd)
 
     gridmap = np.zeros([int(np.ceil(size / res)), int(np.ceil(size / res))]) + l_nd
-    print(np.unique(gridmap))
     return prob(gridmap)
 
-def map_corr(m1, m2):
 
-    same_points = (np.abs(m1-m2)<0.2) & (m1!=0.5) & (m2!=0.5)
-    print(same_points.sum(),(m1!=0.5).sum(), (m2!=0.5).sum())
-    return np.r_[same_points.sum()/(m1!=0.5).sum(), same_points.sum()/(m2!=0.5).sum()]
+def map_corr(m1, m2):
+    same_points = (np.abs(m1 - m2) < 0.2) & (m1 != 0.5) & (m2 != 0.5)
+    return np.r_[same_points.sum() / (m1 != 0.5).sum(), same_points.sum() / (m2 != 0.5).sum()]
