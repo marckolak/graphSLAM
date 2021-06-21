@@ -8,6 +8,8 @@ from src.grid_maps import points2gridmap, map_corr
 from src.hc import v2t, t2v, translation, rotation, ec_hc
 from src.icp import match_scans
 
+Edge = namedtuple(
+    'Edge', ['Type', 'fromNode', 'toNode', 'measurement'])
 
 class Graph:
 
@@ -18,9 +20,6 @@ class Graph:
         self.lut = lut
 
     def add_edge(self, etype, fromNode, toNode, measurement):
-
-        Edge = namedtuple(
-            'Edge', ['Type', 'fromNode', 'toNode', 'measurement'])
 
         edge = Edge(etype, fromNode, toNode, measurement)
         self.edges.append(edge)
