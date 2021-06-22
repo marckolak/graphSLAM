@@ -406,3 +406,46 @@ def init_gridmap(size, res, p_nd=0.5):
 def map_corr(m1, m2):
     same_points = (np.abs(m1 - m2) < 0.2) & (m1 != 0.5) & (m2 != 0.5)
     return np.r_[same_points.sum() / (m1 != 0.5).sum(), same_points.sum() / (m2 != 0.5).sum()]
+
+
+def sample_gridmap(gridmap, pose, size, res, lidar_range, angle_res):
+    map_sample = np.zeros(gridmap.shape) + 0.5
+    # map_sample = gridmap.copy()
+
+    pose_m = world2map(pose, gridmap, res)
+
+    angles = np.arange(pose[2], pose[2] + 2 * np.pi, angle_res)
+
+    far_points = np.c_[np.cos(angles), np.sin(angles)] * lidar_range + pose[:2]
+    # print(far_points.shape)
+    far_points_m = world2map(far_points.T, gridmap, res)
+
+    obst_points_m = []
+    for p in far_points_m:
+        bp = np.array(list(bresenham(pose_m[0], pose_m[1], p[0], p[1])))
+        bp = bp[(bp < gridmap.shape[0]).all(axis=1)]
+        # print(bp.max())
+        mv = gridmap[bp[:, 0], bp[:, 1]]
+        first_occ_ix = min(np.argwhere(mv == 1))[0] + 1
+        # print(first_occ_ix)
+        # map_sample[bp[:first_occ_ix,0], bp[:first_occ_ix,1]] = 2
+        obst_points_m.append(bp[first_occ_ix])
+
+    obst_points = obst_points_m
+    map2world(bp[first_occ_ix], gridmap, res)
+    return np.vstack(obst_points)
+
+
+def map2world(pose_m, gridmap, map_res):
+    origin = np.array(gridmap.shape) / 2
+    pose_w = (pose_m - origin) * map_res
+
+    return pose_w
+
+
+def is_inside_map(pose, gridmap, res):
+    pose_m = world2map(pose, gridmap, res)
+    inside = (gridmap[pose_m[0]:, pose_m[1]] == 1).any() & (gridmap[:pose_m[0], pose_m[1]] == 1).any() & (
+                gridmap[pose_m[0], pose_m[1]:] == 1).any() & (gridmap[pose_m[0], :pose_m[1]] == 1).any()
+
+    return inside
