@@ -44,7 +44,7 @@ def init_uniform_particles_inside(x_range, y_range, head_range, N, gridmap, res)
 
 
 
-def update(particles, weights, s, gridmap, res):
+def update(particles, s, gridmap, res):
 
     sh = hc.ec_hc(s)
     hits = []
@@ -57,4 +57,31 @@ def update(particles, weights, s, gridmap, res):
             hit = 1
         hits.append(hit)
 
-    return hits
+    hits = (np.array(hits)/10)**2
+    hits = hits + 1e-40
+    weights = hits/ hits.sum()
+
+    return weights
+
+
+def resample(particles, weights):
+    N = len(particles)
+    cumulative_sum = np.cumsum(weights)
+    cumulative_sum[-1] = 1.  # avoid round-off error
+    indexes = np.searchsorted(cumulative_sum, np.random.rand(N))
+
+    # resample according to indexes
+    particles[:] = particles[indexes]
+    weights.fill(1.0 / N)
+
+    return particles
+
+
+
+def estimate(particles, weights):
+    """returns mean and variance of the weighted particles"""
+
+    pos = particles[:, 0:2]
+    mean = np.average(pos, weights=weights, axis=0)
+    var  = np.average((pos - mean)**2, weights=weights, axis=0)
+    return mean, var
