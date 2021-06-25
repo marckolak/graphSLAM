@@ -4,11 +4,8 @@ The grid_maps module contains functions which can be used for occupancy grid map
 Copyright (C) 2021 Marcin Kolakowski
 """
 
-import time
-
 import numpy as np
 
-from src.geometry import sort_clockwise
 
 def log_odds(p):
     """ Compute log odds
@@ -24,6 +21,7 @@ def log_odds(p):
         log odds
     """
     return np.log(p / (1 - p))
+
 
 def prob(logodds):
     """ Compute probability
@@ -146,6 +144,7 @@ def world2map(pose, gridmap, map_res):
 
     return new_pose.astype(int)
 
+
 def map2world(pose_m, gridmap, map_res):
     """ Convert cell coordinates to Euclidean x-y
 
@@ -167,7 +166,6 @@ def map2world(pose_m, gridmap, map_res):
     pose_w = (pose_m - origin) * map_res
 
     return pose_w
-
 
 
 def merge_maps(g1, g2, p_nd=0.5):
@@ -327,9 +325,6 @@ def sample_gridmap(gridmap, pose, size, res, lidar_range, angle_res):
     return np.vstack(obst_points)
 
 
-
-
-
 def is_inside_map(pose, gridmap, res):
     """ Check if the given pose is inside the mapped environment
 
@@ -349,6 +344,6 @@ def is_inside_map(pose, gridmap, res):
     """
     pose_m = world2map(pose, gridmap, res)
     inside = (gridmap[pose_m[0]:, pose_m[1]] == 1).any() & (gridmap[:pose_m[0], pose_m[1]] == 1).any() & (
-                gridmap[pose_m[0], pose_m[1]:] == 1).any() & (gridmap[pose_m[0], :pose_m[1]] == 1).any()
+            gridmap[pose_m[0], pose_m[1]:] == 1).any() & (gridmap[pose_m[0], :pose_m[1]] == 1).any()
 
     return inside

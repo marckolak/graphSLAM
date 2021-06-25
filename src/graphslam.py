@@ -8,6 +8,9 @@ from src.grid_maps import points2gridmap, map_corr
 from src.hc import v2t, t2v, translation, rotation, ec_hc
 from src.icp import match_scans
 
+from IPython.display import clear_output
+
+
 Edge = namedtuple(
     'Edge', ['Type', 'fromNode', 'toNode', 'measurement'])
 
@@ -195,8 +198,9 @@ def edge_exists(e, nlist):
 
 def create_icp_edges(graph, scans, icp_pairs, sp):
     poses = graph.get_poses()
-
+    cnt = 0
     for (i, j) in icp_pairs:
+        cnt+=1
         T1 = v2t(poses[i])
 
         T2 = v2t(poses[j])
@@ -209,6 +213,8 @@ def create_icp_edges(graph, scans, icp_pairs, sp):
         s2 = scans[j]
 
         try:
+            clear_output()
+            print('matching scans {},{};  {}/{}'.format(i,j,cnt,len(icp_pairs)))
             t = match_scans(s1, s2, ic, sp, iters=5)
 
             graph.add_icp_edge(i, j, t)

@@ -215,6 +215,18 @@ def transform_line(l, H):
 
 
 def t2v(T):
+    """Converts transformation (rotation, translation) to vector
+
+    Parameters
+    ----------
+    T: ndarray
+        transformation matrix in HC
+
+    Returns
+    -------
+    v: ndarray
+        vector [tx, ty, theta]
+    """
     x = T[0, 2]
     y = T[1, 2]
     theta = np.arctan2(T[1, 0], T[0, 0])
@@ -223,6 +235,18 @@ def t2v(T):
 
 
 def v2t(pose):
+    """Convert vector to transformation matrix
+
+    Parameters
+    ----------
+    pose: ndarray
+        vector [x, y, theta]
+
+    Returns
+    -------
+    T: ndarray
+        transformation matrix in HC
+    """
     c = np.cos(pose[2])
     s = np.sin(pose[2])
     T = np.array([[c, -s, pose[0]], [s, c, pose[1]], [0, 0, 1]])

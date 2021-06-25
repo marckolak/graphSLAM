@@ -6,6 +6,26 @@ import src.hc as hc
 
 
 def match_scans(s1, s2, ic, sp, iters=5):
+    """Match scans using the ICP method
+
+    Parameters
+    ----------
+    s1: ndarray
+        scan 1 in format [x,y, angle],
+    s2: ndarray
+        scan 2 in format [x,y, angle],
+    ic: ndarray
+        initial constarints between the scans (might be based on odometry) [tx, ty, theta]
+    sp: dict
+        slam parameters
+    iters: int
+        number of ICP iterations, default:5
+
+    Returns
+    -------
+    x: ndarray
+        transformation [tx, ty, theta] matching the scans
+    """
     x = ic
 
     for i in range(iters):
@@ -36,6 +56,21 @@ def match_scans(s1, s2, ic, sp, iters=5):
     return x
 
 def transformation_matrix(angle, t):
+    """Get transformation matrix in HC taking into account LiDAR displacement
+
+    Parameters
+    ----------
+    angle: float
+        angle in radians
+    t: ndarray
+        translation [tx, ty]
+
+    Returns
+    -------
+    H: ndarray
+        transformation matric in HC
+    """
+    # lidar movement due to rotation
     Tr = hc.translation(np.r_[0.14, -0.01])
     T = hc.translation(t)
 
@@ -46,6 +81,21 @@ def transformation_matrix(angle, t):
 
 
 def corresponding_line_points(lp1, lp2, H, an_th=0.1, d_th=0.05, corr_points_th=0.1):
+    """
+
+    Parameters
+    ----------
+    lp1
+    lp2
+    H
+    an_th
+    d_th
+    corr_points_th
+
+    Returns
+    -------
+
+    """
     lines1, points1 = lp1
     lines2, points2 = lp2
 
@@ -78,6 +128,20 @@ def corresponding_line_points(lp1, lp2, H, an_th=0.1, d_th=0.05, corr_points_th=
 
 
 def bearing_range_lines(x, lines):
+    """Get bearing and range to lines
+
+    Parameters
+    ----------
+    x: ndarray
+        LiDAR location [x,y]
+    lines: ndarray
+        line parameters as returned by `corresponding_line_points`
+
+    Returns
+    -------
+    br: ndarray
+        bearing and range to lines
+    """
     r = features.dist_from_lines(x[:2], lines)
     cp = features.closest_point_on_line(lines, x[:2]) - x[:2]
     bearing = np.arctan2(cp[:, 1], cp[:, 0])
@@ -86,23 +150,62 @@ def bearing_range_lines(x, lines):
 
 
 def cp_dist(a, p):
+    """ Closest point distance
+
+    Parameters
+    ----------
+    a: ndarray
+        point cloud
+    p: ndarray
+        point
+
+    Returns
+    -------
+    cp: float
+        closest point distance
+    """
     return np.min(np.linalg.norm(a - p, axis=1))
 
 
 def icp_err_fun(x, corr_points):
-    # H = transformation_matrix(x[2], x[:2])
+    """ Function error for LS ICP fitting
+
+    Parameters
+    ----------
+    x: ndarray
+        searched vector [tx, ty, theta]
+    corr_points: list
+        list of tuples containing arrays with corresponding points
+
+    Returns
+    -------
+
+    """
     H = hc.translation(x[:2]).dot(hc.rotation(x[2]))
+
     cper = []
     for p1, p2 in corr_points:
         cper.append(np.mean(np.apply_along_axis(cp_dist, 1, hc.hc_ec(H.dot(hc.ec_hc(p2))), p1)))
-
-
     cper = np.hstack(cper)
 
     return cper
 
 
 def angle_diff(a1, a2):
+    """Get the difference between two angle values taking into account the periodicity
+
+    Parameters
+    ----------
+    a1: ndarray
+        angles 1
+    a2: ndarray
+        angles 2
+
+    Returns
+    -------
+    ad: ndarray
+        angle difference
+    """
     return np.pi - abs(abs(a1 - a2) - np.pi)
 
 
