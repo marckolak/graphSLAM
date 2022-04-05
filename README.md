@@ -8,7 +8,7 @@ M. Kolakowski, 88“Automated Calibration of RSS Fingerprinting Based Systems Us
 
 Please cite the paper if you use the code for your work or research.
 
-<img src="images/map.jpg" alt="Exemplary map" width="600"/>
+<img src="images/map.jpg" alt="Exemplary map" width="200"/>
 
 
 The scripts were primarily used with a robot consisting of:
