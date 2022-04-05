@@ -81,7 +81,7 @@ def resample(particles, weights):
 def estimate(particles, weights):
     """returns mean and variance of the weighted particles"""
 
-    pos = particles[:, 0:2]
+    pos = particles[:, 0:]
     mean = np.average(pos, weights=weights, axis=0)
     var  = np.average((pos - mean)**2, weights=weights, axis=0)
     return mean, var

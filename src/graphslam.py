@@ -79,7 +79,7 @@ class Graph:
         return poses
 
     def plot(self):
-        plt.figure(figsize=(25, 25))
+        plt.figure(figsize=(8, 8))
         plt.axes().set_aspect('equal')
         plt.grid()
 
@@ -96,12 +96,12 @@ class Graph:
         icpEdgesY = np.vstack(icpEdgesY)
 
         for x, y, i in zip(icpEdgesX, icpEdgesY, range(len(icpEdgesY))):
-            plt.plot(x, y, linewidth=1, c='darkred')
+            plt.plot(x, y, linewidth=1, c='tab:blue')
 
         poses = self.get_poses()
         if len(poses):
             poses = np.vstack(poses)
-            plt.plot(poses.T[0], poses.T[1], 'b*', markersize=15)
+            plt.plot(poses.T[0], poses.T[1], 'o', markersize=9, markerfacecolor='w', markeredgecolor='tab:orange')
 
             for p, i in zip(poses, range(len(poses))):
                 plt.text(p[0] + 0.1, p[1] + 0.1, str(int(i)))
@@ -196,7 +196,7 @@ def edge_exists(e, nlist):
     return e.tolist() in nlist
 
 
-def create_icp_edges(graph, scans, icp_pairs, sp):
+def create_icp_edges(graph, scans, icp_pairs, sp, progress_bar=None):
     poses = graph.get_poses()
     cnt = 0
     for (i, j) in icp_pairs:
@@ -213,8 +213,9 @@ def create_icp_edges(graph, scans, icp_pairs, sp):
         s2 = scans[j]
 
         try:
-            clear_output()
-            print('matching scans {},{};  {}/{}'.format(i,j,cnt,len(icp_pairs)))
+            # clear_output()
+            # print('matching scans {},{};  {}/{}'.format(i,j,cnt,len(icp_pairs)))
+            progress_bar.update(1)
             t = match_scans(s1, s2, ic, sp, iters=5)
 
             graph.add_icp_edge(i, j, t)

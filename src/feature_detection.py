@@ -8,6 +8,8 @@ import itertools
 
 import numpy as np
 
+
+
 def get_line_features(s, a, extr_angle_range=np.pi / 2, extr_split_th=0.1, extr_min_len=0.2,
                       extr_min_points=2, mrg_max_dist=1, mrg_a_tol=0.9, mrg_b_tol=0.5, mrg_fit_tol=0.5, corners=[]):
     lines, points = extract_lines(s, a, angle_dist=extr_angle_range, split_th=extr_split_th,

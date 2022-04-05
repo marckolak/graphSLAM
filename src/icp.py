@@ -3,7 +3,7 @@ from scipy.optimize import least_squares
 
 import src.feature_detection as features
 import src.hc as hc
-
+import time
 
 def match_scans(s1, s2, ic, sp, iters=5):
     """Match scans using the ICP method
@@ -28,16 +28,15 @@ def match_scans(s1, s2, ic, sp, iters=5):
     """
     x = ic
 
+    # Extract line features from the scans
+    lp1 = features.get_line_features(s1[:, :2], s1[:, 2], sp["extr_angle_range"], sp["extr_split_th"],
+                                     sp["extr_min_len"], sp["extr_min_points"], sp["mrg_max_dist"],
+                                     sp["mrg_a_tol"], sp["mrg_b_tol"], sp["mrg_fit_tol"], corners=[])
     for i in range(iters):
         # transform second scan using the result from the last iteration
         # H = transformation_matrix(x[2], x[:2])
         H = hc.translation(x[:2]).dot(hc.rotation(x[2]))
         s2t = hc.hc_ec(H.dot(hc.ec_hc(s2[:, :2])))
-
-        # Extract line features from the scans
-        lp1 = features.get_line_features(s1[:, :2], s1[:, 2], sp["extr_angle_range"], sp["extr_split_th"],
-                                         sp["extr_min_len"], sp["extr_min_points"], sp["mrg_max_dist"],
-                                         sp["mrg_a_tol"], sp["mrg_b_tol"], sp["mrg_fit_tol"], corners=[])
 
         lp2 = features.get_line_features(s2t[:, :2], s2[:, 2], sp["extr_angle_range"], sp["extr_split_th"],
                                          sp["extr_min_len"], sp["extr_min_points"], sp["mrg_max_dist"],
@@ -47,9 +46,7 @@ def match_scans(s1, s2, ic, sp, iters=5):
         corr_points = corresponding_line_points(lp1, lp2, H,
                                                 an_th=sp['an_th'], d_th=sp['d_th'], corr_points_th=sp['corr_points_th'])
 
-
         optres = least_squares(icp_err_fun, x, args=(corr_points,))
-
         x = optres.x
         # print(x)
 
@@ -209,3 +206,5 @@ def angle_diff(a1, a2):
     return np.pi - abs(abs(a1 - a2) - np.pi)
 
 
+def transform_lp(lp, x):
+    pass

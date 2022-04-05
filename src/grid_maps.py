@@ -106,7 +106,11 @@ def points2gridmap(size, res, pose, scan, p_free=0.4, p_nd=0.5, p_occ=0.99):
     l_nd = log_odds(p_nd)
     l_occ = log_odds(p_occ)
 
-    gridmap = np.zeros([int(np.ceil(size / res)), int(np.ceil(size / res))]) + l_nd
+    if type(size) is tuple:
+        gridmap = np.zeros([int(np.ceil(size[0] / res)), int(np.ceil(size[1] / res))]) + l_nd
+    else:
+        gridmap = np.zeros([int(np.ceil(size / res)), int(np.ceil(size / res))]) + l_nd
+
 
     pix = world2map(pose, gridmap, res)
     ix = world2map(scan, gridmap, res)

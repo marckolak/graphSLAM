@@ -10,7 +10,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from src.scan_processing import scan2xy
+from scan_processing import scan2xy
 
 
 def load_motion_file(filepath):
